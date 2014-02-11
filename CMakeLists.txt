@@ -88,7 +88,7 @@ ELSE(WIN32)
  ENDIF( NOT APPLE )
 ENDIF(WIN32)
 
-set( BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_DATE_TIME_LIBRARY} ${Boost_CHRONO_LIBRARY} ${ALL_OPENSSL_LIBRARIES} ${Boost_COROUTINE_LIBRARY} ${Boost_CONTEXT_LIBRARY} ${pthread})
+set( BOOST_LIBRARIES ${Boost_THREAD_LIBRARY} ${Boost_SYSTEM_LIBRARY} ${Boost_FILESYSTEM_LIBRARY} ${Boost_DATE_TIME_LIBRARY} ${Boost_CHRONO_LIBRARY} ${ALL_OPENSSL_LIBRARIES} ${Boost_COROUTINE_LIBRARY} ${Boost_CONTEXT_LIBRARY} ${pthread} )
 
 
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/fc/include )
@@ -100,6 +100,7 @@ include_directories( ${Boost_INCLUDE_DIR} )
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/fc/vendor/boost_1.51/include )
 include_directories( ${BDB_CXX_INCLUDE_DIR} )
 
+#set( BOOST_LIBRARIES {BOOST_LIBRARIES} pthread )
    
 #link_directories( ${Boost_LIBRARY_DIRS} )
 
@@ -181,6 +182,10 @@ set( sources
      src/keychain.cpp
      src/wallet_cache.cpp
      src/bitcoin_wallet.cpp
+     src/multibit_wallet.cpp
+     src/multibit.pb.cc
+     src/crypto_scrypt.c
+     src/sha256.c
 
      vendor/SFMT-src-1.4/SFMT.c
      src/proof_of_work.cpp )
