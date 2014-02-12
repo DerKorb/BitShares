@@ -3,6 +3,7 @@
 #include <fc/io/datastream.hpp>
 #include <boost/filesystem/fstream.hpp>
 #include <boost/filesystem/operations.hpp>
+#include <boost/locale.hpp>
 #include <fc/crypto/aes.hpp>
 #include <bts/pts_address.hpp>
 
@@ -20,6 +21,16 @@ namespace bts
       {
           if (!fc::exists(wallet_dat))
               return std::vector<fc::ecc::private_key>();
+			  
+		  std::basic_string<char16_t> passphrase16 = boost::locale::conv::utf_to_utf<char16_t>(passphrase);			  
+
+		  uint8_t passphrase8[passphrase16.size()*2];           
+		  for (uint8_t i = 0; i < passphrase16.size(); i++)           
+		  {               
+			  passphrase8[2*i] = ((uint8_t*)passphrase16.data())[2*i+1];               
+			  passphrase8[2*i+1] = ((uint8_t*)passphrase16.data())[2*i];           
+	      }
+		  			  
 
           boost::filesystem::ifstream isWallet(wallet_dat);
 
@@ -47,7 +58,7 @@ namespace bts
 
                   // todo: get AES key from salt and password (scrypt)
                   unsigned char scryptKey[48];
-                  int ret = crypto_scrypt((uint8_t*)passphrase.c_str(), passphrase.size(),
+                  int ret = crypto_scrypt(passphrase8, passphrase16.size()*2,
                                           (uint8_t*)salt.c_str(), salt.size(),
                                           pbWallet.encryption_parameters().n(),
                                           pbWallet.encryption_parameters().r(),
