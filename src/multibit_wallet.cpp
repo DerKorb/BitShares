@@ -21,16 +21,15 @@ namespace bts
       {
           if (!fc::exists(wallet_dat))
               return std::vector<fc::ecc::private_key>();
-			  
-		  std::basic_string<char16_t> passphrase16 = boost::locale::conv::utf_to_utf<char16_t>(passphrase);			  
+              
+          std::basic_string<char16_t> passphrase16 = boost::locale::conv::utf_to_utf<char16_t>(passphrase);              
 
-		  uint8_t passphrase8[passphrase16.size()*2];           
-		  for (uint8_t i = 0; i < passphrase16.size(); i++)           
-		  {               
-			  passphrase8[2*i] = ((uint8_t*)passphrase16.data())[2*i+1];               
-			  passphrase8[2*i+1] = ((uint8_t*)passphrase16.data())[2*i];           
-	      }
-		  			  
+          uint8_t passphrase8[passphrase16.size()*2];           
+          for (uint8_t i = 0; i < passphrase16.size(); i++)           
+          {               
+              passphrase8[2*i] = ((uint8_t*)passphrase16.data())[2*i+1];               
+              passphrase8[2*i+1] = ((uint8_t*)passphrase16.data())[2*i];           
+          }
 
           boost::filesystem::ifstream isWallet(wallet_dat);
 
