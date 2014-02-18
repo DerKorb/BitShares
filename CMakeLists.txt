@@ -184,8 +184,6 @@ set( sources
      src/bitcoin_wallet.cpp
      src/multibit_wallet.cpp
      src/multibit.pb.cc
-     src/crypto_scrypt.c
-     src/sha256.c
 
      vendor/SFMT-src-1.4/SFMT.c
      src/proof_of_work.cpp )
