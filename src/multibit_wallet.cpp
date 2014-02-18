@@ -7,10 +7,7 @@
 #include <fc/crypto/aes.hpp>
 #include <bts/pts_address.hpp>
 
-extern "C"
-{
-    #include "crypto_scrypt.h"
-}
+#include <fc/crypto/scrypt.hpp>
 
 #include "multibit.pb.h"
 #include <iostream>
@@ -53,13 +50,13 @@ namespace bts
                   std::string iv = pb_wallet.key(i).encrypted_private_key().initialisation_vector();
 
                   unsigned char scrypt_key[48];
-                  int ret = crypto_scrypt(passphrase8, passphrase16.size()*2,
-                                          (uint8_t*)salt.c_str(), salt.size(),
-                                          pb_wallet.encryption_parameters().n(),
-                                          pb_wallet.encryption_parameters().r(),
-                                          pb_wallet.encryption_parameters().p(),
+                  int ret = fc::crypto_scrypt(passphrase8, passphrase16.size()*2,
+												(uint8_t*)salt.c_str(), salt.size(),
+												pb_wallet.encryption_parameters().n(),
+												pb_wallet.encryption_parameters().r(),
+												pb_wallet.encryption_parameters().p(),
 
-                                          scrypt_key, 48);
+												scrypt_key, 48);
                   
 				  if (ret != 0)
                   {
