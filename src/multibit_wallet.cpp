@@ -31,69 +31,64 @@ namespace bts
               passphrase8[2*i+1] = ((uint8_t*)passphrase16.data())[2*i];           
           }
 
-          boost::filesystem::ifstream isWallet(wallet_dat);
+          boost::filesystem::ifstream is_wallet(wallet_dat);
 
-          wallet::Wallet pbWallet;
-          pbWallet.ParseFromIstream(&isWallet);
+          wallet::Wallet pb_wallet;
+          pb_wallet.ParseFromIstream(&is_wallet);
 
           std::string salt;
-          if (pbWallet.encryption_type() == pbWallet.ENCRYPTED_SCRYPT_AES)
-              salt = pbWallet.encryption_parameters().salt();
+          if (pb_wallet.encryption_type() == pb_wallet.ENCRYPTED_SCRYPT_AES)
+              salt = pb_wallet.encryption_parameters().salt();
 
           std::vector<fc::ecc::private_key> keyReturn;
-          for (int i = 0; i < pbWallet.key_size(); i++)
+          for (int i = 0; i < pb_wallet.key_size(); i++)
           {
-              std::string pkeyData;
+              std::string pkey_data;
+			  if (pb_wallet.encryption_type() == pb_wallet.UNENCRYPTED)
+                  pkey_data = pb_wallet.key(i).private_key();
 
-              std::cout << "key #" << i << std::endl;
-              if (pbWallet.encryption_type() == pbWallet.UNENCRYPTED)
-                  pkeyData = pbWallet.key(i).private_key();
-
-              else if (pbWallet.encryption_type() == pbWallet.ENCRYPTED_SCRYPT_AES)
+              else if (pb_wallet.encryption_type() == pb_wallet.ENCRYPTED_SCRYPT_AES)
               {
-                  std::cout << "  encrypted\n";
-                  pkeyData = pbWallet.key(i).encrypted_private_key().encrypted_private_key();
-                  std::string iv = pbWallet.key(i).encrypted_private_key().initialisation_vector();
+                  pkey_data = pb_wallet.key(i).encrypted_private_key().encrypted_private_key();
+                  std::string iv = pb_wallet.key(i).encrypted_private_key().initialisation_vector();
 
-                  // todo: get AES key from salt and password (scrypt)
-                  unsigned char scryptKey[48];
+                  unsigned char scrypt_key[48];
                   int ret = crypto_scrypt(passphrase8, passphrase16.size()*2,
                                           (uint8_t*)salt.c_str(), salt.size(),
-                                          pbWallet.encryption_parameters().n(),
-                                          pbWallet.encryption_parameters().r(),
-                                          pbWallet.encryption_parameters().p(),
+                                          pb_wallet.encryption_parameters().n(),
+                                          pb_wallet.encryption_parameters().r(),
+                                          pb_wallet.encryption_parameters().p(),
 
-                                          scryptKey, 48);
-                  std::cout << "  kdf result: " << ret << "\n";
-                  if (ret != 0)
+                                          scrypt_key, 48);
+                  
+				  if (ret != 0)
                   {
-                      // todo error handling
+                      FC_LOG_MESSAGE( warn, "scrypt key derivation for key {nkey} failed.", ( "nkey", i ) );
                       continue;
                   }
 
                   try
                   {
                       unsigned char output[48];
-                      int klen = fc::aes_decrypt((unsigned char*)pkeyData.c_str(), pkeyData.size(), scryptKey, (unsigned char*)iv.c_str(), output);
+                      int klen = fc::aes_decrypt((unsigned char*)pkey_data.c_str(), pkey_data.size(), scrypt_key, (unsigned char*)iv.c_str(), output);
                       if (!klen)
                       {
-                          // todo decryption error
+                          FC_LOG_MESSAGE( warn, "aes decryption for key {nkey} failed.", ( "nkey", i ) );
                           continue;
                       }
 
-                      std::cout << "  decrypted key length: " << klen << "\n";
-                      pkeyData.assign((char*)output, klen);
+                      pkey_data.assign((char*)output, klen);
                   }
-                  catch (fc::exception e)
+                  catch( fc::exception& e )
                   {
-                      std::cout << "something went wrong!\n" << e.to_string() << "\n" << e.to_detail_string() << "\n";
+                      ilog( "something went wrong while decrypting! {msg}", ("msg", e.to_string() + ", " + e.to_detail_string()) );
                   }
               }
 
               else
                   continue;
 
-              fc::datastream<const char*> stream(pkeyData.c_str(), pkeyData.size());
+              fc::datastream<const char*> stream(pkey_data.c_str(), pkey_data.size());
               fc::sha256 bits;
               stream >> bits;
 
