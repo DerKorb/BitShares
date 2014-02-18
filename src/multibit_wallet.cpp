@@ -6,7 +6,7 @@
 #include <boost/locale.hpp>
 #include <fc/crypto/aes.hpp>
 #include <bts/pts_address.hpp>
-
+#include <fc/log/logger.hpp>
 #include <fc/crypto/scrypt.hpp>
 
 #include "multibit.pb.h"
